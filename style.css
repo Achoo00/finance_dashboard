@@ -1,0 +1,54 @@
+/* Navigation styling */
+div.stRadio > label {
+    font-size: 18px !important;
+    font-weight: 500;
+}
+
+div.stRadio > div[role="radiogroup"] > label {
+    font-size: 16px !important;
+    padding: 10px !important;
+    background-color: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+}
+
+/* Remove radio button dots */
+div.stRadio > div[role="radiogroup"] > label > div[data-testid="stMarkdownContainer"] > p {
+    font-size: 16px !important;
+}
+
+/* Hide the radio button circle */
+div.stRadio input[type="radio"] {
+    display: none;
+}
+
+/* Active page highlight */
+div.stRadio > div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child {
+    display: none;
+}
+
+/* General text styling */
+.st-emotion-cache-16idsys p {
+    font-size: 16px !important;
+}
+
+/* Metric values */
+div[data-testid="stMetricValue"] > div {
+    font-size: 24px !important;
+}
+
+/* Headers */
+h1 {
+    font-size: 32px !important;
+    padding-bottom: 20px !important;
+}
+
+h2 {
+    font-size: 24px !important;
+    padding-bottom: 15px !important;
+}
+
+h3 {
+    font-size: 20px !important;
+    padding-bottom: 10px !important;
+} 

@@ -1,0 +1,168 @@
+# 🧭 Roadmap: AI-Assisted Investment Portfolio Analyzer
+
+## ✅ Phase 1: Data Infrastructure
+
+### 1. **Manual Portfolio Entry (CSV-Based)**
+
+* Maintain a clean `portfolio.csv` with:
+
+  * `ticker`, `entry_date`, `entry_price`, `quantity`, `notes`
+* Build a small Streamlit UI to input/edit CSV data easily
+
+**📂 Example:**
+
+```csv
+ticker,entry_date,entry_price,quantity,notes
+GOOGL,2023-05-01,120.45,10,Long-term hold
+AAPL,2024-01-12,165.23,5,Earnings play
+```
+
+### 2. **Data Collection Pipeline (`yfinance`)**
+
+For each ticker in your portfolio:
+
+* Daily market data:
+
+  * ✅ Price (close), Day’s range, 52-week range
+  * ✅ Volume, Avg volume
+  * ✅ Market Cap
+* Fundamentals:
+
+  * ✅ Trailing/Forward P/E
+  * ✅ EPS, Earnings date
+  * ✅ Profit margin
+  * ✅ Revenue and net income (last 4 quarters)
+  * ✅ Dividend yield, ex-div date
+* Historical:
+
+  * ✅ Closing prices for up to 20 years
+
+**📌 Suggestion:** Store historical price data separately from latest fundamentals.
+
+---
+
+### 3. **Data Storage: SQLite**
+
+* Tables:
+
+  * `portfolio` — user positions
+  * `asset_data` — latest fetched data per ticker
+  * `price_history` — long-term daily prices
+  * `financials` — revenue, EPS, etc. by quarter
+
+**💡 Tips:**
+
+* Include `last_updated` timestamps
+* Allow refresh only if data is stale
+
+---
+
+## 📈 Phase 2: Analysis & Visualization
+
+### 4. **Analysis Stack**
+
+* Use `pandas` & `numpy` for data wrangling and calculations
+* Use `ta` for:
+
+  * ✅ RSI, MACD, SMA, Bollinger Bands
+* Use `statsmodels` & `scipy` for:
+
+  * ✅ Regression (e.g., PE trends)
+  * ✅ Volatility, mean reversion, t-tests
+
+**✅ Tip:** Tag results:
+
+* `rsi_overbought = rsi > 70`
+* `macd_crossover = True`
+
+---
+
+### 5. **Visualization Tools**
+
+* **Plotly** for:
+
+  * Interactive price + indicator charts
+  * Dividend history timeline
+* **Seaborn** for:
+
+  * Heatmaps (e.g., sector exposure)
+  * Distributions (e.g., returns)
+* **Matplotlib** for:
+
+  * Multi-subplot technical dashboards
+  * PDF/static exports
+
+---
+
+## 🧠 Phase 3: AI Integration via YAML
+
+### 6. **Formatted YAML Export**
+
+* For any stock and date, generate:
+
+  * Current summary
+  * Technical flags
+  * Financials
+  * Chart snapshots (or links)
+  * Brief news titles
+  * Sentiment snapshot (if available)
+
+**📄 Example YAML:**
+
+yaml
+ticker: GOOGL
+date: 2025-05-27
+current_price: 138.22
+52_week_range: [102, 153]
+rsi: 58
+macd_signal: bullish crossover
+pe_ratio:
+  trailing: 24.5
+  forward: 22.1
+profit_margin: 18.3%
+dividend_yield: 1.1%
+next_earnings: 2025-06-01
+recent_news:
+  - "Google launches new AI chip for cloud"
+
+
+### 7. **Manual AI Chat Analysis (Copy-Paste)**
+
+* Copy YAML into ChatGPT or similar and prompt:
+
+  > “Analyze this stock data and suggest actions. Summarize what’s notable and any risks.”
+
+**🧠 Tips:**
+
+* Keep YAML under 1,500 tokens
+* Include "flags" (e.g., `at_52_week_high: true`) for context
+
+## 📊 Phase 4: Streamlit Dashboard
+
+### 8. **UI Layout**
+
+Use `streamlit` to:
+
+* Upload/view your portfolio.csv
+* View analysis & graphs per stock
+* Show technical flags and alerts
+* Export formatted YAML from dropdown
+
+**📁 Tabs:**
+
+1. Portfolio Overview
+2. Individual Stock View
+3. Technical Alerts
+4. Export to YAML
+
+## ✅ Summary: Final Stack
+
+| Component       | Tools                                           |
+| --------------- | ----------------------------------------------- |
+| Portfolio Input | CSV + optional Streamlit form                   |
+| Market Data     | `yfinance`                                      |
+| Storage         | SQLite                                          |
+| Analysis        | `pandas`, `numpy`, `ta`, `statsmodels`, `scipy` |
+| Visualization   | `plotly`, `seaborn`, `matplotlib`               |
+| UI              | `streamlit`                                     |
+| AI Integration  | Manual YAML export + chatbot prompt             |
