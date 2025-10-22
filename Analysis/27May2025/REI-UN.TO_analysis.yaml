@@ -1,0 +1,63 @@
+ticker: REI-UN.TO
+date: '2025-05-27'
+data_timestamp: '2025-05-27 21:03:39'
+data_availability:
+  status: partial
+  available_data:
+  - basic_info
+  - position
+  - basic_price
+  - market_stats
+  - fundamentals
+  - financials
+position:
+  entry_date: '2025-05-27'
+  entry_price: 17.08
+  quantity: 7
+  cost_basis: 119.55999999999999
+  notes: Real estate investment trust
+  current_value: 122.57000000000001
+  gain_loss: 3.0100000000000193
+  gain_loss_percentage: 2.52%
+current_price: 17.51
+52_week_range:
+- 15.46
+- 20.83
+volume:
+  current: 732796
+  average: 890926
+market_cap: 5204497408.0
+valuation:
+  pe_ratio:
+    trailing: 19.897728
+    forward: 9.516304
+  eps: 0.88
+  profit_margin: 22.3%
+  dividend_yield: 671.0%
+quarterly_financials:
+  revenue:
+    '2024-12-31 00:00:00': 1239526000.0
+    '2023-12-31 00:00:00': 1123871000.0
+    '2022-12-31 00:00:00': 1213847000.0
+    '2021-12-31 00:00:00': 1175061000.0
+  net_income:
+    '2024-12-31 00:00:00': 473465000.0
+    '2023-12-31 00:00:00': 38802000.0
+    '2022-12-31 00:00:00': 236772000.0
+    '2021-12-31 00:00:00': 598389000.0
+ai_analysis_prompts:
+  technical: Based on this YAML stock data, suggest if I should enter, hold, or exit
+    this position. Consider the RSI, MACD, 52-week range, and PE ratios. If the stock
+    is technically overbought or undervalued, explain your rationale.
+  valuation: Here's the valuation and technical data for REI-UN.TO. Compare it to
+    the sector average or competitors and tell me if it's currently overvalued or
+    a good entry point.
+  news: Here's the YAML data for REI-UN.TO. Look up recent news headlines about this
+    stock and explain how any events (e.g., product launches, legal actions, or executive
+    changes) could impact its near-term price or long-term outlook.
+  sentiment: Use the YAML sentiment snapshot and supplement with Reddit, Twitter,
+    and financial news sentiment. Is the market currently optimistic or skeptical
+    about this stock? Should that influence my position?
+  macro: Based on this YAML and current market events (e.g., interest rate decisions,
+    inflation reports), explain how macro trends might affect this stock and whether
+    to adjust my exposure.

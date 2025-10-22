@@ -51,12 +51,12 @@ class StockDataCollector:
         logger.error(f"Max retries exceeded for {ticker}")
         return None
 
-    def get_stock_data(self, ticker, portfolio_id=None):
+    def get_stock_data(self, ticker, position_id=None):
         """Get current market data and fundamentals for a ticker."""
         try:
-            # Check cache in database if portfolio_id is provided
-            if portfolio_id:
-                cached_data = self.db.get_market_data(portfolio_id)
+            # Check cache in database if position_id is provided
+            if position_id:
+                cached_data = self.db.get_market_data(position_id)
                 if cached_data and self._is_cache_valid(cached_data):
                     # Convert stored JSON back to dict
                     data = {
@@ -108,20 +108,34 @@ class StockDataCollector:
             if not data:
                 return None
 
+            # Convert next_earnings_date from timestamp if present
+            def convert_timestamp(ts):
+                if ts is None:
+                    return None
+                if isinstance(ts, (int, float)):
+                    # Convert Unix timestamp to datetime
+                    return datetime.fromtimestamp(ts)
+                return ts  # If already a datetime or string, return as is
+
+            data['next_earnings_date'] = convert_timestamp(data.get('next_earnings_date'))
+
             # Get revenue and net income with retry
             def fetch_financials():
                 stock = yf.Ticker(ticker)
                 financials = stock.financials
                 if not financials.empty:
-                    data['quarterly_revenue'] = financials.loc['Total Revenue'].head(4).to_dict()
-                    data['quarterly_net_income'] = financials.loc['Net Income'].head(4).to_dict()
+                    # Convert keys to str for JSON serialization and ensure values are JSON serializable
+                    rev = financials.loc['Total Revenue'].head(4).to_dict()
+                    net = financials.loc['Net Income'].head(4).to_dict()
+                    data['quarterly_revenue'] = {str(k): float(v) if pd.notnull(v) else None for k, v in rev.items()}
+                    data['quarterly_net_income'] = {str(k): float(v) if pd.notnull(v) else None for k, v in net.items()}
                 return data
 
             data = self._fetch_with_retry(ticker, fetch_financials) or data
 
-            # Cache in database if portfolio_id is provided
-            if portfolio_id:
-                self.db.update_market_data(portfolio_id, data)
+            # Cache in database if position_id is provided
+            if position_id:
+                self.db.update_market_data(position_id, data)
 
             return data
 
@@ -144,12 +158,12 @@ class StockDataCollector:
 
         return self._fetch_with_retry(ticker, fetch_history)
 
-    def get_technical_indicators(self, ticker, portfolio_id=None):
+    def get_technical_indicators(self, ticker, position_id=None):
         """Calculate technical indicators for a ticker with retry logic."""
         try:
-            # Check cache in database if portfolio_id is provided
-            if portfolio_id:
-                cached_data = self.db.get_market_data(portfolio_id)
+            # Check cache in database if position_id is provided
+            if position_id:
+                cached_data = self.db.get_market_data(position_id)
                 if cached_data and self._is_cache_valid(cached_data):
                     return {
                         'rsi': cached_data.rsi,
@@ -210,9 +224,9 @@ class StockDataCollector:
 
             technical_data = self._fetch_with_retry(ticker, fetch_and_calculate)
 
-            # Cache in database if portfolio_id is provided
-            if technical_data and portfolio_id:
-                self.db.update_market_data(portfolio_id, {}, technical_data)
+            # Cache in database if position_id is provided
+            if technical_data and position_id:
+                self.db.update_market_data(position_id, {}, technical_data)
 
             return technical_data
 
@@ -222,4 +236,4 @@ class StockDataCollector:
 
     def __del__(self):
         """Close database connection when object is destroyed"""
-        self.db.close() 
+        self.db.close()
