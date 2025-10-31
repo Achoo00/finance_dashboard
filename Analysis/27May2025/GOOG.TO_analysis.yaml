@@ -1,0 +1,63 @@
+ticker: GOOG.TO
+date: '2025-05-27'
+data_timestamp: '2025-05-27 20:56:48'
+data_availability:
+  status: partial
+  available_data:
+  - basic_info
+  - position
+  - basic_price
+  - market_stats
+  - fundamentals
+  - financials
+position:
+  entry_date: '2025-05-27'
+  entry_price: 28.06
+  quantity: 72
+  cost_basis: 2020.32
+  notes: AI and advertising leader
+  current_value: 2059.2000000000003
+  gain_loss: 38.88000000000034
+  gain_loss_percentage: 1.92%
+current_price: 28.6
+52_week_range:
+- 23.56
+- 32.25
+volume:
+  current: 234283
+  average: 289993
+market_cap: 2817059979264.0
+valuation:
+  pe_ratio:
+    trailing: 19.066668
+    forward: null
+  eps: 1.5
+  profit_margin: 30.9%
+  dividend_yield: 47.0%
+quarterly_financials:
+  revenue:
+    '2024-12-31 00:00:00': 350018000000.0
+    '2023-12-31 00:00:00': 307394000000.0
+    '2022-12-31 00:00:00': 282836000000.0
+    '2021-12-31 00:00:00': 257637000000.0
+  net_income:
+    '2024-12-31 00:00:00': 100118000000.0
+    '2023-12-31 00:00:00': 73795000000.0
+    '2022-12-31 00:00:00': 59972000000.0
+    '2021-12-31 00:00:00': 76033000000.0
+ai_analysis_prompts:
+  technical: Based on this YAML stock data, suggest if I should enter, hold, or exit
+    this position. Consider the RSI, MACD, 52-week range, and PE ratios. If the stock
+    is technically overbought or undervalued, explain your rationale.
+  valuation: Here's the valuation and technical data for GOOG.TO. Compare it to the
+    sector average or competitors and tell me if it's currently overvalued or a good
+    entry point.
+  news: Here's the YAML data for GOOG.TO. Look up recent news headlines about this
+    stock and explain how any events (e.g., product launches, legal actions, or executive
+    changes) could impact its near-term price or long-term outlook.
+  sentiment: Use the YAML sentiment snapshot and supplement with Reddit, Twitter,
+    and financial news sentiment. Is the market currently optimistic or skeptical
+    about this stock? Should that influence my position?
+  macro: Based on this YAML and current market events (e.g., interest rate decisions,
+    inflation reports), explain how macro trends might affect this stock and whether
+    to adjust my exposure.

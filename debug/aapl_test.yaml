@@ -1,0 +1,65 @@
+ticker: AAPL
+date: '2025-05-27'
+data_timestamp: '2025-05-26 18:59:42'
+data_availability:
+  status: full
+  available_data:
+  - basic_info
+  - position
+  - basic_price
+  - market_stats
+  - fundamentals
+  - technicals
+  - financials
+position:
+  entry_date: '2024-11-26'
+  entry_price: 160.0
+  quantity: 15
+  cost_basis: 2400.0
+  notes: Core tech holding
+  current_value: 2929.05
+  gain_loss: 529.0500000000002
+  gain_loss_percentage: 22.04%
+current_price: 195.27
+52_week_range:
+- 169.21
+- 260.1
+volume:
+  current: 78432918
+  average: 62155408
+market_cap: 2916513742848.0
+valuation:
+  pe_ratio:
+    trailing: 30.415888
+    forward: 23.498194
+  eps: 6.42
+  profit_margin: 24.3%
+  dividend_yield: 53.0%
+technical_indicators:
+  rsi: 37.22
+  macd:
+    value: -0.12
+    signal: -0.26
+    crossover: true
+  moving_averages:
+    sma_50: 151.27
+    sma_200: 177.48
+    above_50_sma: true
+    above_200_sma: true
+flags:
+  rsi_overbought: false
+  rsi_oversold: false
+  bullish_macd_cross: true
+  above_200_sma: true
+  at_52_week_high: false
+quarterly_financials:
+  revenue:
+    '2024-09-30 00:00:00': 391035000000.0
+    '2023-09-30 00:00:00': 383285000000.0
+    '2022-09-30 00:00:00': 394328000000.0
+    '2021-09-30 00:00:00': 365817000000.0
+  net_income:
+    '2024-09-30 00:00:00': 93736000000.0
+    '2023-09-30 00:00:00': 96995000000.0
+    '2022-09-30 00:00:00': 99803000000.0
+    '2021-09-30 00:00:00': 94680000000.0

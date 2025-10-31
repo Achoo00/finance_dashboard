@@ -1,0 +1,43 @@
+ticker: XEQT.TO
+date: '2025-05-27'
+data_timestamp: '2025-05-27 21:10:26'
+data_availability:
+  status: partial
+  available_data:
+  - basic_info
+  - position
+  - basic_price
+  - market_stats
+position:
+  entry_date: '2025-05-27'
+  entry_price: 33.8
+  quantity: 1308
+  cost_basis: 44210.399999999994
+  notes: Global market fund
+  current_value: 45623.04
+  gain_loss: 1412.6400000000067
+  gain_loss_percentage: 3.20%
+current_price: 34.88
+52_week_range:
+- 27.54
+- 35.47
+volume:
+  current: 204241
+  average: 434285
+market_cap: null
+ai_analysis_prompts:
+  technical: Based on this YAML stock data, suggest if I should enter, hold, or exit
+    this position. Consider the RSI, MACD, 52-week range, and PE ratios. If the stock
+    is technically overbought or undervalued, explain your rationale.
+  valuation: Here's the valuation and technical data for XEQT.TO. Compare it to the
+    sector average or competitors and tell me if it's currently overvalued or a good
+    entry point.
+  news: Here's the YAML data for XEQT.TO. Look up recent news headlines about this
+    stock and explain how any events (e.g., product launches, legal actions, or executive
+    changes) could impact its near-term price or long-term outlook.
+  sentiment: Use the YAML sentiment snapshot and supplement with Reddit, Twitter,
+    and financial news sentiment. Is the market currently optimistic or skeptical
+    about this stock? Should that influence my position?
+  macro: Based on this YAML and current market events (e.g., interest rate decisions,
+    inflation reports), explain how macro trends might affect this stock and whether
+    to adjust my exposure.

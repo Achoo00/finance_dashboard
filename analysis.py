@@ -50,95 +50,224 @@ class PortfolioAnalyzer:
         return fig
 
     @staticmethod
-    def create_technical_chart(hist_data, ticker):
-        """Create a technical analysis chart with price, volume, and indicators."""
+    def create_technical_chart(hist_data, ticker, show_options=None, time_range=None):
+        """Create a technical analysis chart with selectable indicators.
+        
+        Args:
+            hist_data: Historical price data DataFrame
+            ticker: Stock ticker symbol
+            show_options: Dict of boolean flags for each indicator
+                {
+                    'candlesticks': bool,
+                    'bollinger': bool,
+                    'sma': bool,
+                    'rsi': bool,
+                    'volume': bool
+                }
+            time_range: String indicating the time range to display
+                Options: '1D', '5D', '1M', '6M', 'YTD', '1Y', '5Y', 'ALL'
+        """
         if hist_data.empty:
             return None
+            
+        # Filter data based on time range
+        if time_range and time_range != 'ALL':
+            end_date = hist_data.index.max()
+            if time_range == '1D':
+                start_date = end_date - pd.Timedelta(days=1)
+            elif time_range == '5D':
+                start_date = end_date - pd.Timedelta(days=5)
+            elif time_range == '1M':
+                start_date = end_date - pd.Timedelta(days=30)
+            elif time_range == '6M':
+                start_date = end_date - pd.Timedelta(days=180)
+            elif time_range == 'YTD':
+                start_date = pd.Timestamp(end_date.year, 1, 1)
+            elif time_range == '1Y':
+                start_date = end_date - pd.Timedelta(days=365)
+            elif time_range == '5Y':
+                start_date = end_date - pd.Timedelta(days=365*5)
+            
+            hist_data = hist_data[hist_data.index >= start_date]
+            
+        # Default to showing everything if no options provided
+        if show_options is None:
+            show_options = {
+                'candlesticks': True,
+                'bollinger': True,
+                'sma': True,
+                'rsi': True,
+                'volume': True
+            }
         
-        # Calculate indicators
-        bb = BollingerBands(close=hist_data['Close'])
-        hist_data['BB_high'] = bb.bollinger_hband()
-        hist_data['BB_low'] = bb.bollinger_lband()
-        hist_data['BB_mid'] = bb.bollinger_mavg()
+        # Calculate indicators (only if needed)
+        if show_options.get('bollinger'):
+            bb = BollingerBands(close=hist_data['Close'])
+            hist_data['BB_high'] = bb.bollinger_hband()
+            hist_data['BB_low'] = bb.bollinger_lband()
+            hist_data['BB_mid'] = bb.bollinger_mavg()
         
-        hist_data['SMA_50'] = SMAIndicator(close=hist_data['Close'], window=50).sma_indicator()
-        hist_data['SMA_200'] = SMAIndicator(close=hist_data['Close'], window=200).sma_indicator()
-        hist_data['RSI'] = RSIIndicator(close=hist_data['Close']).rsi()
+        if show_options.get('sma'):
+            hist_data['SMA_50'] = SMAIndicator(close=hist_data['Close'], window=50).sma_indicator()
+            hist_data['SMA_200'] = SMAIndicator(close=hist_data['Close'], window=200).sma_indicator()
         
-        # Create the main price chart
+        if show_options.get('rsi'):
+            hist_data['RSI'] = RSIIndicator(close=hist_data['Close']).rsi()
+        
+        # Create subplots based on what's shown
+        row_heights = [0.7]  # Main price chart
+        if show_options.get('volume'):
+            row_heights.append(0.15)  # Volume
+        if show_options.get('rsi'):
+            row_heights.append(0.15)  # RSI
+        
         fig = go.Figure()
         
-        # Candlestick chart
-        fig.add_trace(go.Candlestick(
-            x=hist_data.index,
-            open=hist_data['Open'],
-            high=hist_data['High'],
-            low=hist_data['Low'],
-            close=hist_data['Close'],
-            name='Price'
-        ))
+        # Track min and max values for y-axis scaling
+        price_values = []
         
-        # Add Bollinger Bands
-        fig.add_trace(go.Scatter(
-            x=hist_data.index,
-            y=hist_data['BB_high'],
-            line=dict(color='gray', dash='dash'),
-            name='BB Upper'
-        ))
+        # Main price chart
+        if show_options.get('candlesticks'):
+            fig.add_trace(go.Candlestick(
+                x=hist_data.index,
+                open=hist_data['Open'],
+                high=hist_data['High'],
+                low=hist_data['Low'],
+                close=hist_data['Close'],
+                name='Price'
+            ))
+            price_values.extend([
+                hist_data['High'].max(),
+                hist_data['Low'].min()
+            ])
+        else:
+            # Line chart alternative
+            fig.add_trace(go.Scatter(
+                x=hist_data.index,
+                y=hist_data['Close'],
+                name='Price',
+                line=dict(color='black')
+            ))
+            price_values.extend([
+                hist_data['Close'].max(),
+                hist_data['Close'].min()
+            ])
         
-        fig.add_trace(go.Scatter(
-            x=hist_data.index,
-            y=hist_data['BB_low'],
-            line=dict(color='gray', dash='dash'),
-            name='BB Lower',
-            fill='tonexty'
-        ))
+        # Add Bollinger Bands if selected
+        if show_options.get('bollinger'):
+            fig.add_trace(go.Scatter(
+                x=hist_data.index,
+                y=hist_data['BB_high'],
+                line=dict(color='gray', dash='dash'),
+                name='BB Upper'
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=hist_data.index,
+                y=hist_data['BB_low'],
+                line=dict(color='gray', dash='dash'),
+                name='BB Lower',
+                fill='tonexty'
+            ))
+            price_values.extend([
+                hist_data['BB_high'].max(),
+                hist_data['BB_low'].min()
+            ])
         
-        # Add SMAs
-        fig.add_trace(go.Scatter(
-            x=hist_data.index,
-            y=hist_data['SMA_50'],
-            line=dict(color='blue'),
-            name='SMA 50'
-        ))
+        # Add SMAs if selected
+        if show_options.get('sma'):
+            fig.add_trace(go.Scatter(
+                x=hist_data.index,
+                y=hist_data['SMA_50'],
+                line=dict(color='blue'),
+                name='SMA 50'
+            ))
+            
+            fig.add_trace(go.Scatter(
+                x=hist_data.index,
+                y=hist_data['SMA_200'],
+                line=dict(color='red'),
+                name='SMA 200'
+            ))
+            price_values.extend([
+                hist_data['SMA_50'].max(),
+                hist_data['SMA_50'].min(),
+                hist_data['SMA_200'].max(),
+                hist_data['SMA_200'].min()
+            ])
         
-        fig.add_trace(go.Scatter(
-            x=hist_data.index,
-            y=hist_data['SMA_200'],
-            line=dict(color='red'),
-            name='SMA 200'
-        ))
+        # Calculate y-axis range with padding
+        if price_values:
+            y_min = min(v for v in price_values if pd.notna(v))
+            y_max = max(v for v in price_values if pd.notna(v))
+            y_padding = (y_max - y_min) * 0.05  # 5% padding
+            y_range = [y_min - y_padding, y_max + y_padding]
+        else:
+            y_range = None
         
-        # Update layout
+        # Add RSI if selected
+        if show_options.get('rsi'):
+            fig.add_trace(go.Scatter(
+                x=hist_data.index,
+                y=hist_data['RSI'],
+                name='RSI',
+                yaxis="y2"
+            ))
+            
+            # Add RSI overbought/oversold lines
+            fig.add_hline(y=70, line_dash="dash", line_color="red", line_width=1, opacity=0.5)
+            fig.add_hline(y=30, line_dash="dash", line_color="green", line_width=1, opacity=0.5)
+            
+            # Add a new y-axis for RSI
+            fig.update_layout(
+                yaxis2=dict(
+                    title="RSI",
+                    overlaying="y",
+                    side="right",
+                    range=[0, 100]
+                )
+            )
+        
+        # Add volume if selected
+        if show_options.get('volume'):
+            colors = ['red' if row['Open'] > row['Close'] else 'green' for _, row in hist_data.iterrows()]
+            fig.add_trace(go.Bar(
+                x=hist_data.index,
+                y=hist_data['Volume'],
+                name='Volume',
+                marker_color=colors,
+                yaxis="y3"
+            ))
+            
+            # Add a new y-axis for volume
+            fig.update_layout(
+                yaxis3=dict(
+                    title="Volume",
+                    overlaying="y",
+                    side="right",
+                    anchor="free",
+                    position=1
+                )
+            )
+        
+        # Update layout with dynamic y-axis range
         fig.update_layout(
-            title=f'{ticker} Technical Analysis',
+            title=f'{ticker} Technical Analysis ({time_range if time_range else "ALL"})',
             yaxis_title='Price',
             xaxis_title='Date',
             template='plotly_white',
-            height=800
+            height=800,
+            showlegend=True,
+            legend=dict(
+                yanchor="top",
+                y=0.99,
+                xanchor="left",
+                x=0.01
+            ),
+            yaxis=dict(
+                range=y_range
+            ) if y_range else dict()
         )
-        
-        # Add RSI subplot
-        fig.add_trace(go.Scatter(
-            x=hist_data.index,
-            y=hist_data['RSI'],
-            name='RSI',
-            yaxis="y2"
-        ))
-        
-        # Add a new y-axis for RSI
-        fig.update_layout(
-            yaxis2=dict(
-                title="RSI",
-                overlaying="y",
-                side="right",
-                range=[0, 100]
-            )
-        )
-        
-        # Add RSI overbought/oversold lines
-        fig.add_hline(y=70, line_dash="dash", line_color="red", line_width=1, opacity=0.5)
-        fig.add_hline(y=30, line_dash="dash", line_color="green", line_width=1, opacity=0.5)
         
         return fig
 
