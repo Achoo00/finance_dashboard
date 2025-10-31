@@ -148,9 +148,9 @@ def format_large_number(num):
     return f"${num:,.2f}"
 
 # Add error handling for data fetching
-def fetch_stock_data_with_feedback(collector, ticker, position_id):
+def fetch_stock_data_with_feedback(collector, ticker, position_id, force_refresh=False):
     with st.spinner(f'Fetching data for {ticker}...'):
-        data = collector.get_stock_data(ticker, position_id)
+        data = collector.get_stock_data(ticker, position_id, force_refresh=force_refresh)
         if data is None:
             st.warning(f"⚠️ Temporarily unable to fetch data for {ticker}. Using cached data if available.")
         return data
@@ -435,7 +435,7 @@ try:
             # If refresh button is clicked, fetch new data and update DB
             if refresh:
                 for idx, position in enumerate(positions):
-                    stock_data = fetch_stock_data_with_feedback(collector, position.ticker, position.id)
+                    stock_data = fetch_stock_data_with_feedback(collector, position.ticker, position.id, force_refresh=True)
                     if stock_data and 'current_price' in stock_data:
                         # The fetch_stock_data_with_feedback function already updates the database
                         # So we just need to update our local view
@@ -579,7 +579,7 @@ try:
             
             # Manual refresh button
             if st.button("🔄 Refresh Market Data", key=f"refresh_market_{selected_ticker}"):
-                stock_data = fetch_stock_data_with_feedback(collector, selected_ticker, position.id)
+                stock_data = fetch_stock_data_with_feedback(collector, selected_ticker, position.id, force_refresh=True)
                 st.success("Market data refreshed!")
                 st.rerun()
             
@@ -979,80 +979,6 @@ try:
         else:
             st.info("No positions found in this portfolio. Add your first position using the form above.")
 
-    elif page == "Portfolio Overview":
-        st.title("Portfolio Overview")
-        
-        if not current_portfolio:
-            st.warning("Please select a portfolio first from the sidebar.")
-            st.stop()
-            
-        # Get positions directly from database
-        positions = db.get_portfolio_positions(current_portfolio.id)
-        
-        if not positions:
-            st.info("No positions found in this portfolio. Add some positions from the Position Management page.")
-        else:
-            # Calculate portfolio metrics
-            portfolio_value = 0
-            total_invested = 0
-            portfolio_data = []
-            
-            for position in positions:
-                market_data = db.get_market_data(position.id)
-                current_price = market_data.current_price if market_data else 0
-                current_value = position.quantity * current_price
-                cost_basis = position.quantity * position.entry_price
-                pnl = current_value - cost_basis
-                pnl_pct = (pnl / cost_basis * 100) if cost_basis != 0 else 0
-                
-                portfolio_value += current_value
-                total_invested += cost_basis
-                
-                portfolio_data.append({
-                    'Ticker': position.ticker,
-                    'Quantity': position.quantity,
-                    'Avg Cost': position.entry_price,
-                    'Current Price': current_price,
-                    'Cost Basis': cost_basis,
-                    'Market Value': current_value,
-                    'P/L $': pnl,
-                    'P/L %': pnl_pct,
-                    'Sector': getattr(market_data, 'sector', 'N/A'),
-                    'Notes': position.notes or ''
-                })
-            
-            # Create DataFrame for display
-            df = pd.DataFrame(portfolio_data)
-            
-            # Display portfolio summary metrics
-            total_pnl = portfolio_value - total_invested
-            total_pnl_pct = (total_pnl / total_invested * 100) if total_invested > 0 else 0
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Total Invested", f"${total_invested:,.2f}")
-            with col2:
-                st.metric("Current Value", f"${portfolio_value:,.2f}")
-            with col3:
-                st.metric("Total P/L", 
-                         f"${total_pnl:,.2f}", 
-                         f"{total_pnl_pct:.2f}%",
-                         delta_color="normal")
-            
-            # Display portfolio overview
-            col1, col2, col3 = st.columns([3, 1, 1])
-            col1.metric("Total Value", f"${total_value:,.2f}")
-            col2.metric("Number of Positions", len(df))
-            col3.metric("Average Entry Price", f"${df['entry_price'].mean():,.2f}")
-            
-            # Display positions in a table
-            st.dataframe(df, use_container_width=True)
-            
-            # Add export button
-            if st.button("Export Portfolio to YAML"):
-                yaml_exporter.export_portfolio(df)
-                st.success("Portfolio exported to YAML file!")
-    
     elif page == "AI Export page":
         st.title("AI Analysis Export")
         

@@ -13,10 +13,13 @@ class PortfolioAnalyzer:
         if portfolio_df.empty or 'Market Value' not in portfolio_df.columns:
             return None
         
+        # Use 'Ticker' (capitalized) since that's what the DataFrame has after renaming
+        ticker_col = 'Ticker' if 'Ticker' in portfolio_df.columns else 'ticker'
+        
         fig = px.pie(
             portfolio_df,
             values='Market Value',
-            names='ticker',
+            names=ticker_col,
             title='Portfolio Composition',
             hole=0.3
         )
@@ -26,17 +29,37 @@ class PortfolioAnalyzer:
     @staticmethod
     def create_portfolio_performance_chart(portfolio_df):
         """Create a bar chart showing gains/losses by position."""
-        if portfolio_df.empty or 'Gain/Loss' not in portfolio_df.columns:
+        # Check for available columns (may be 'Return %' or 'Gain/Loss' or 'gain_loss_pct')
+        if portfolio_df.empty:
             return None
         
-        colors = ['red' if x < 0 else 'green' for x in portfolio_df['Gain/Loss']]
+        # Determine which columns are available
+        ticker_col = 'Ticker' if 'Ticker' in portfolio_df.columns else 'ticker'
+        value_col = None
+        for col in ['Return %', 'Gain/Loss', 'gain_loss_pct']:
+            if col in portfolio_df.columns:
+                value_col = col
+                break
+        
+        if not value_col:
+            return None
+        
+        colors = ['red' if x < 0 else 'green' for x in portfolio_df[value_col]]
+        
+        # Format text based on whether it's a percentage or dollar amount
+        if value_col == 'Return %' or value_col == 'gain_loss_pct':
+            text_values = portfolio_df[value_col].apply(lambda x: f'{x:.2f}%')
+            y_axis_title = 'Return %'
+        else:
+            text_values = portfolio_df[value_col].apply(lambda x: f'${x:,.2f}')
+            y_axis_title = 'Gain/Loss ($)'
         
         fig = go.Figure(data=[
             go.Bar(
-                x=portfolio_df['ticker'],
-                y=portfolio_df['Gain/Loss'],
+                x=portfolio_df[ticker_col],
+                y=portfolio_df[value_col],
                 marker_color=colors,
-                text=portfolio_df['Gain/Loss'].apply(lambda x: f'${x:,.2f}'),
+                text=text_values,
                 textposition='auto',
             )
         ])
@@ -44,7 +67,7 @@ class PortfolioAnalyzer:
         fig.update_layout(
             title='Portfolio Performance by Position',
             xaxis_title='Ticker',
-            yaxis_title='Gain/Loss ($)',
+            yaxis_title=y_axis_title,
             showlegend=False
         )
         return fig
