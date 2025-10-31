@@ -139,7 +139,8 @@ class DatabaseManager:
         return position
     
     def update_position(self, position_id, entry_price=None, quantity=None, notes=None):
-        position = self.session.query(Portfolio).filter_by(id=position_id).first()
+        """Update a position by ID"""
+        position = self.get_position(position_id)
         if position:
             if entry_price is not None:
                 position.entry_price = entry_price
@@ -151,16 +152,9 @@ class DatabaseManager:
             return position
         return None
     
-    def delete_position(self, position_id):
-        position = self.session.query(Portfolio).filter_by(id=position_id).first()
-        if position:
-            self.session.delete(position)
-            self.session.commit()
-            return True
-        return False
-    
     def get_all_positions(self):
-        return self.session.query(Portfolio).all()
+        """Get all positions from all portfolios"""
+        return self.session.query(Position).all()
     
     def update_market_data(self, position_id, market_data, technical_data=None):
         """Update market data for a position"""
@@ -195,28 +189,14 @@ class DatabaseManager:
         self.session.commit()
         return existing
     
-    def get_market_data(self, position_id):
-        """Get market data for a position"""
-        logger.info(f"Getting market data for position ID: {position_id}")
-        try:
-            with self.session as session:
-                market_data = session.query(MarketData).filter(MarketData.position_id == position_id).first()
-                logger.info(f"Found market data: {market_data is not None}")
-                if market_data:
-                    logger.info(f"Market data values: price={market_data.current_price}, volume={market_data.volume}")
-                return market_data
-        except Exception as e:
-            logger.error(f"Error getting market data: {str(e)}")
-            return None
     
     def get_position(self, position_id):
         """Get a position by ID"""
         logger.info(f"Getting position with ID: {position_id}")
         try:
-            with self.session as session:
-                position = session.query(Portfolio).filter(Portfolio.id == position_id).first()
-                logger.info(f"Found position: {position is not None}")
-                return position
+            position = self.session.query(Position).filter_by(id=position_id).first()
+            logger.info(f"Found position: {position is not None}")
+            return position
         except Exception as e:
             logger.error(f"Error getting position: {str(e)}")
             return None
@@ -317,71 +297,40 @@ class DatabaseManager:
         portfolio = self.get_portfolio(portfolio_id)
         if portfolio:
             self.session.delete(portfolio)
+            self.session.commit()
     def get_portfolio_positions(self, portfolio_id):
         return self.session.query(Position).filter_by(portfolio_id=portfolio_id).all()
         
-    def get_position(self, position_id):
-        return self.session.query(Position).filter_by(id=position_id).first()
-        
     def get_market_data(self, position_id):
-        return self.session.query(MarketData).filter_by(position_id=position_id).first()
-        
-    def update_market_data(self, position_id, market_data, technical_data=None):
+        """Get market data for a position"""
+        logger.info(f"Getting market data for position ID: {position_id}")
         try:
-            # Get existing market data or create new
-            market = self.get_market_data(position_id)
-            if not market:
-                market = MarketData(position_id=position_id)
-                self.session.add(market)
-                
-            # Update market data fields
-            for key, value in market_data.items():
-                if hasattr(market, key) and value is not None:
-                    setattr(market, key, value)
-                    
-            # Update technical data fields if provided
-            if technical_data:
-                for key, value in technical_data.items():
-                    if hasattr(market, key) and value is not None:
-                        setattr(market, key, value)
-                        
-            market.last_updated = datetime.now()
-            self.session.commit()
-            return True
+            market_data = self.session.query(MarketData).filter_by(position_id=position_id).first()
+            logger.info(f"Found market data: {market_data is not None}")
+            if market_data:
+                logger.info(f"Market data values: price={market_data.current_price}, volume={market_data.volume}")
+            return market_data
         except Exception as e:
-            self.session.rollback()
-            logger.error(f"Error updating market data: {str(e)}")
-            return False
+            logger.error(f"Error getting market data: {str(e)}")
+            return None
             
     def delete_position(self, position_id):
+        """Delete a position and its related market data"""
         try:
-            # Start a new transaction
-            with self.session.begin():
-                # Delete related market data first (if exists)
-                market_data = self.get_market_data(position_id)
-                if market_data:
-                    self.session.delete(market_data)
-                    
-                # Delete the position
-                position = self.get_position(position_id)
-                if position:
-                    # Delete related price history (if any)
-                    price_history = self.session.query(PriceHistory).filter_by(position_id=position_id).all()
-                    for ph in price_history:
-                        self.session.delete(ph)
-                        
-                    # Delete related financials (if any)
-                    financials = self.session.query(Financials).filter_by(position_id=position_id).all()
-                    for fin in financials:
-                        self.session.delete(fin)
-                    
-                    # Finally, delete the position
-                    self.session.delete(position)
-                    
-                # Commit all deletes in a single transaction
+            # Delete related market data first (if exists)
+            market_data = self.get_market_data(position_id)
+            if market_data:
+                self.session.delete(market_data)
+                
+            # Delete the position
+            position = self.get_position(position_id)
+            if position:
+                self.session.delete(position)
                 self.session.commit()
                 return True
-            return False
+            else:
+                logger.warning(f"Position with ID {position_id} not found")
+                return False
         except Exception as e:
             self.session.rollback()
             logger.error(f"Error deleting position {position_id}: {str(e)}")

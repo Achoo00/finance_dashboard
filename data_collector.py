@@ -51,39 +51,65 @@ class StockDataCollector:
         logger.error(f"Max retries exceeded for {ticker}")
         return None
 
-    def get_stock_data(self, ticker, position_id=None):
-        """Get current market data and fundamentals for a ticker."""
+    def _convert_cached_data_to_dict(self, cached_data):
+        """Convert cached MarketData object to dictionary format"""
+        if not cached_data:
+            return None
+            
+        data = {
+            'current_price': cached_data.current_price,
+            'day_low': cached_data.day_low,
+            'day_high': cached_data.day_high,
+            'fifty_two_week_low': cached_data.fifty_two_week_low,
+            'fifty_two_week_high': cached_data.fifty_two_week_high,
+            'volume': cached_data.volume,
+            'avg_volume': cached_data.avg_volume,
+            'market_cap': cached_data.market_cap,
+            'pe_ratio': cached_data.pe_ratio,
+            'forward_pe': cached_data.forward_pe,
+            'eps': cached_data.eps,
+            'profit_margin': cached_data.profit_margin,
+            'dividend_yield': cached_data.dividend_yield,
+            'next_earnings_date': cached_data.next_earnings_date,
+        }
+        
+        if cached_data.quarterly_revenue:
+            try:
+                data['quarterly_revenue'] = json.loads(cached_data.quarterly_revenue)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        if cached_data.quarterly_net_income:
+            try:
+                data['quarterly_net_income'] = json.loads(cached_data.quarterly_net_income)
+            except (json.JSONDecodeError, TypeError):
+                pass
+                
+        return data
+
+    def get_stock_data(self, ticker, position_id=None, force_refresh=False):
+        """Get current market data and fundamentals for a ticker.
+        
+        Args:
+            ticker: Stock ticker symbol
+            position_id: Optional position ID for caching
+            force_refresh: If True, bypass cache and always fetch fresh data
+            
+        Returns:
+            Dictionary with market data, or None if fetch fails and no cached data available
+        """
         try:
-            # Check cache in database if position_id is provided
+            # Get cached data for fallback
+            cached_data = None
             if position_id:
                 cached_data = self.db.get_market_data(position_id)
-                if cached_data and self._is_cache_valid(cached_data):
-                    # Convert stored JSON back to dict
-                    data = {
-                        'current_price': cached_data.current_price,
-                        'day_low': cached_data.day_low,
-                        'day_high': cached_data.day_high,
-                        'fifty_two_week_low': cached_data.fifty_two_week_low,
-                        'fifty_two_week_high': cached_data.fifty_two_week_high,
-                        'volume': cached_data.volume,
-                        'avg_volume': cached_data.avg_volume,
-                        'market_cap': cached_data.market_cap,
-                        'pe_ratio': cached_data.pe_ratio,
-                        'forward_pe': cached_data.forward_pe,
-                        'eps': cached_data.eps,
-                        'profit_margin': cached_data.profit_margin,
-                        'dividend_yield': cached_data.dividend_yield,
-                        'next_earnings_date': cached_data.next_earnings_date,
-                    }
-                    
-                    if cached_data.quarterly_revenue:
-                        data['quarterly_revenue'] = json.loads(cached_data.quarterly_revenue)
-                    if cached_data.quarterly_net_income:
-                        data['quarterly_net_income'] = json.loads(cached_data.quarterly_net_income)
-                        
-                    return data
-
+            
+            # Check cache in database if not forcing refresh
+            if not force_refresh and cached_data and self._is_cache_valid(cached_data):
+                logger.info(f"Using cached data for {ticker}")
+                return self._convert_cached_data_to_dict(cached_data)
+            
             # Fetch new data from Yahoo Finance with retry logic
+            logger.info(f"Fetching fresh data for {ticker} (force_refresh={force_refresh})")
             def fetch_data():
                 stock = yf.Ticker(ticker)
                 info = stock.info
@@ -106,6 +132,11 @@ class StockDataCollector:
 
             data = self._fetch_with_retry(ticker, fetch_data)
             if not data:
+                # Fallback to cached data if available
+                if cached_data:
+                    logger.warning(f"Failed to fetch fresh data for {ticker}, using cached data")
+                    return self._convert_cached_data_to_dict(cached_data)
+                logger.error(f"Failed to fetch data for {ticker} and no cached data available")
                 return None
 
             # Convert next_earnings_date from timestamp if present
@@ -131,16 +162,32 @@ class StockDataCollector:
                     data['quarterly_net_income'] = {str(k): float(v) if pd.notnull(v) else None for k, v in net.items()}
                 return data
 
-            data = self._fetch_with_retry(ticker, fetch_financials) or data
+            # Try to fetch financials, but don't fail if it doesn't work
+            try:
+                financials_data = self._fetch_with_retry(ticker, fetch_financials)
+                if financials_data:
+                    data.update(financials_data)
+            except Exception as e:
+                logger.warning(f"Failed to fetch financials for {ticker}: {str(e)}")
 
             # Cache in database if position_id is provided
             if position_id:
-                self.db.update_market_data(position_id, data)
+                try:
+                    self.db.update_market_data(position_id, data)
+                except Exception as e:
+                    logger.error(f"Failed to update market data in database for {ticker}: {str(e)}")
+                    # Still return the data even if caching fails
 
             return data
 
         except Exception as e:
             logger.error(f"Error in get_stock_data for {ticker}: {str(e)}")
+            # Fallback to cached data if available
+            if position_id:
+                cached_data = self.db.get_market_data(position_id)
+                if cached_data:
+                    logger.warning(f"Exception occurred for {ticker}, falling back to cached data")
+                    return self._convert_cached_data_to_dict(cached_data)
             return None
 
     def get_historical_prices(self, ticker, period="1y"):
