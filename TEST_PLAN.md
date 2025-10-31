@@ -308,3 +308,10 @@ pytest tests/unit/test_database.py::test_create_portfolio_valid
 - Use real API calls only in integration tests (marked accordingly)
 - All tests should be deterministic (no random failures)
 
+Next steps
+To continue, implement the remaining tests from TEST_PLAN.md in priority order:
+Complete database tests (Test Suite 1)
+Data collector tests (Test Suite 2)
+Analysis tests (Test Suite 3)
+Continue through remaining suites
+Running the first test
