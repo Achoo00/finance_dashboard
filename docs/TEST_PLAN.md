@@ -27,47 +27,47 @@ tests/
 ## 1. Database Layer Tests (`test_database.py`)
 
 ### 1.1 Portfolio Management
-- ✅ **Test 1.1.1**: Create portfolio with valid data
-- ✅ **Test 1.1.2**: Create portfolio with duplicate name (should fail)
-- ✅ **Test 1.1.3**: Create portfolio with invalid data (missing name)
-- ✅ **Test 1.1.4**: Get portfolio by ID (existing)
-- ✅ **Test 1.1.5**: Get portfolio by ID (non-existent)
-- ✅ **Test 1.1.6**: Get all portfolios
-- ✅ **Test 1.1.7**: Get default portfolio
-- ✅ **Test 1.1.8**: Update portfolio (name, description, is_default)
-- ✅ **Test 1.1.9**: Delete portfolio (with positions - should cascade)
-- ✅ **Test 1.1.10**: Delete portfolio (without positions)
-- ✅ **Test 1.1.11**: Set default portfolio (should unset previous default)
+- ✅ **Test 1.1.1**: Create portfolio with valid data - *Completed*
+- ✅ **Test 1.1.2**: Create portfolio with duplicate name (should fail) - *Completed*
+- ✅ **Test 1.1.3**: Create portfolio with invalid data (missing name) - *Completed*
+- ✅ **Test 1.1.4**: Get portfolio by ID (existing) - *Completed*
+- ✅ **Test 1.1.5**: Get portfolio by ID (non-existent) - *Completed*
+- ✅ **Test 1.1.6**: Get all portfolios - *Completed*
+- ✅ **Test 1.1.7**: Get default portfolio - *Completed*
+- ✅ **Test 1.1.8**: Update portfolio (name, description, is_default) - *Completed*
+- ✅ **Test 1.1.9**: Delete portfolio (with positions - should cascade) - *Completed*
+- ✅ **Test 1.1.10**: Delete portfolio (without positions) - *Completed*
+- ✅ **Test 1.1.11**: Set default portfolio (should unset previous default) - *Completed*
 
 ### 1.2 Position Management
-- ✅ **Test 1.2.1**: Add position with valid data
-- ✅ **Test 1.2.2**: Add position with invalid portfolio_id (should fail)
-- ✅ **Test 1.2.3**: Get position by ID (existing)
-- ✅ **Test 1.2.4**: Get position by ID (non-existent)
-- ✅ **Test 1.2.5**: Get all positions
-- ✅ **Test 1.2.6**: Get portfolio positions (specific portfolio)
-- ✅ **Test 1.2.7**: Update position (entry_price, quantity, notes impostors)
-- ✅ **Test 1.2.8**: Delete position (should delete related market_data)
-- ✅ **Test 1.2.9**: Delete position (non-existent - should handle gracefully)
+- ✅ **Test 1.2.1**: Add position with valid data - *Completed*
+- ✅ **Test 1.2.2**: Add position with invalid portfolio_id (should fail) - *Completed*
+- ✅ **Test 1.2.3**: Get position by ID (existing) - *Completed*
+- ✅ **Test 1.2.4**: Get position by ID (non-existent) - *Completed*
+- ✅ **Test 1.2.5**: Get all positions - *Completed*
+- ✅ **Test 1.2.6**: Get portfolio positions (specific portfolio) - *Completed*
+- ✅ **Test 1.2.7**: Update position (entry_price, quantity, notes) - *Completed*
+- ✅ **Test 1.2.8**: Delete position (should delete related market_data) - *Completed*
+- ✅ **Test 1.2.9**: Delete position (non-existent - should handle gracefully) - *Completed*
 
 ### 1.3 Market Data Management
-- ✅ **Test 1.3.1**: Update market data (new position - should create)
-- ✅ **Test 1.3.2**: Update market data (existing position - should update)
-- ✅ **Test 1.3.3**: Update market data with quarterly_revenue/net_income (JSON serialization)
-- ✅ **Test 1.3.4**: Get market data by position_id (existing)
-- ✅ **Test 1.3.5**: Get market data by position_id (non-existent)
-- ✅ **Test 1.3.6**: Market data JSON serialization/deserialization
-- ✅ **Test 1.3.7**: Update market data with technical indicators
+- ✅ **Test 1.3.1**: Update market data (new position - should create) - *Completed*
+- ✅ **Test 1.3.2**: Update market data (existing position - should update) - *Completed*
+- ✅ **Test 1.3.3**: Update market data with quarterly_revenue/net_income (JSON serialization) - *Completed*
+- ✅ **Test 1.3.4**: Get market data by position_id (existing) - *Completed*
+- ✅ **Test 1.3.5**: Get market data by position_id (non-existent) - *Completed*
+- ✅ **Test 1.3.6**: Market data JSON serialization/deserialization - *Completed*
+- ✅ **Test 1.3.7**: Update market data with technical indicators - *Completed*
 
 ### 1.4 Price History
-- ✅ **Test 1.4.1**: Add price history for ticker
-- ✅ **Test 1.4.2**: Get price history with date range
-- ✅ **Test 1.4.3**: Get price history without date range (all data)
+- ✅ **Test 1.4.1**: Add price history for ticker - *Completed*
+- ✅ **Test 1.4.2**: Get price history with date range - *Completed*
+- ✅ **Test 1.4.3**: Get price history without date range (all data) - *Incomplete*
 
 ### 1.5 Database Transactions & Error Handling
-- ✅ **Test 1.5.1**: Transaction rollback on error
-- ✅ **Test 1.5.2**: Database connection cleanup
-- ✅ **Test 1.5.3**: Foreign key constraint violations
+- ❌ **Test 1.5.1**: Transaction rollback on error - *Incomplete: Test needs revision to properly test transaction rollback*
+- ✅ **Test 1.5.2**: Database connection cleanup - *Completed*
+- ❌ **Test 1.5.3**: Foreign key constraint violations - *Incomplete: Test needs revision to handle NOT NULL constraint for ticker field*
 
 ---
 
