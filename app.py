@@ -418,7 +418,7 @@ try:
                 
                 portfolio_data.append({
                     'id': position.id,
-                    'ticker': position.ticker,
+                    'ticker': f'<a href="https://ca.finance.yahoo.com/quote/{position.ticker}" target="_blank">{position.ticker}</a>',
                     'quantity': position.quantity,
                     'entry_price': position.entry_price,
                     'current_price': current_price,
@@ -488,29 +488,10 @@ try:
             display_df = display_df.rename(columns=display_columns)
             display_df = display_df.round(2)
             
-            st.dataframe(
-                display_df,
-                column_config={
-                    "Market Value": st.column_config.NumberColumn(
-                        "Market Value",
-                        format="$%.2f"
-                    ),
-                    "Gain/Loss": st.column_config.NumberColumn(
-                        "Gain/Loss",
-                        format="$%.2f"
-                    ),
-                    "Return %": st.column_config.NumberColumn(
-                        "Return %", format="%.2f%%"
-                    ),
-                    "Cost Basis": st.column_config.NumberColumn(
-                        "Cost Basis", format="$%.2f"
-                    ),
-                    "Current Price": st.column_config.NumberColumn(
-                        "Current Price", format="$%.2f"
-                    )
-                },
-                use_container_width=True,
-                hide_index=True
+            # Display the dataframe with HTML rendering for the ticker column
+            st.markdown(
+                display_df.to_html(escape=False, index=False), 
+                unsafe_allow_html=True
             )
             
             # Portfolio Visualizations
