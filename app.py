@@ -332,7 +332,7 @@ try:
                     # Show basic stats
                     positions = db.get_portfolio_positions(portfolio.id)
                     num_positions = len(positions)
-                    total_value = sum(p.quantity * (db.get_market_data(p.id).current_price if db.get_market_data(p.id) else 0) for p in positions)
+                    total_value = sum(p.quantity * (db.get_market_data(p.id).current_price if (db.get_market_data(p.id) and db.get_market_data(p.id).current_price is not None) else 0) for p in positions)
                     
                     col2.metric("Positions", num_positions)
                     col3.metric("Total Value", f"${total_value:,.2f}" if total_value > 0 else "N/A")
@@ -440,13 +440,19 @@ try:
                         # The fetch_stock_data_with_feedback function already updates the database
                         # So we just need to update our local view
                         market_data = db.get_market_data(position.id)
-                        if market_data:
+                        if market_data and market_data.current_price is not None:
                             portfolio_data[idx]['current_price'] = market_data.current_price
                             portfolio_data[idx]['market_value'] = position.quantity * market_data.current_price
                             portfolio_data[idx]['gain_loss'] = portfolio_data[idx]['market_value'] - portfolio_data[idx]['cost_basis']
                             portfolio_data[idx]['gain_loss_pct'] = (portfolio_data[idx]['gain_loss'] / portfolio_data[idx]['cost_basis'] * 100) \
                                 if portfolio_data[idx]['cost_basis'] != 0 else 0
-                            portfolio_data[idx]['sector'] = getattr(market_data, 'sector', 'N/A')
+                        else:
+                            portfolio_data[idx]['current_price'] = None
+                            portfolio_data[idx]['market_value'] = None
+                            portfolio_data[idx]['gain_loss'] = None
+                            portfolio_data[idx]['gain_loss_pct'] = 0
+                            
+                        portfolio_data[idx]['sector'] = getattr(market_data, 'sector', 'N/A') if market_data else 'N/A'
                 
                 portfolio_view = pd.DataFrame(portfolio_data)
                 st.success("Market data refreshed! (Values shown are now up to date)")
@@ -841,7 +847,7 @@ try:
             for position in positions:
                 # Get market data for the position
                 market_data = db.get_market_data(position.id)
-                current_price = market_data.current_price if market_data else 0
+                current_price = market_data.current_price if (market_data and market_data.current_price is not None) else 0
                 current_value = position.quantity * current_price
                 cost_basis = position.quantity * position.entry_price
                 pnl = current_value - cost_basis
